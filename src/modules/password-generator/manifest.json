@@ -1,0 +1,9 @@
+{
+  "id": "password-generator",
+  "name": "Password Generator",
+  "icon": "🔐",
+  "tags": ["security", "text", "utility"],
+  "description": "Generate secure random passwords (dummy tool).",
+  "path": "#/tools/password-generator",
+  "version": "0.1.0"
+}

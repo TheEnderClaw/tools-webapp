@@ -1,0 +1,9 @@
+{
+  "id": "markdown-preview",
+  "name": "Markdown Preview",
+  "icon": "📝",
+  "tags": ["text", "developer", "preview"],
+  "description": "Live markdown preview panel (dummy tool).",
+  "path": "#/tools/markdown-preview",
+  "version": "0.1.0"
+}

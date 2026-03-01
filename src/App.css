@@ -1,0 +1,152 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #0f1115;
+  color: #eaf0ff;
+}
+
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.topbar p {
+  margin: 0.4rem 0 0;
+  color: #9da8c4;
+}
+
+.pill {
+  border: 1px solid #293042;
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  color: #9da8c4;
+  font-size: 0.85rem;
+}
+
+.controls {
+  display: grid;
+  gap: 0.9rem;
+  margin-bottom: 1.4rem;
+}
+
+.search {
+  width: 100%;
+  border: 1px solid #2f3b56;
+  border-radius: 12px;
+  background: #111827;
+  color: #eaf0ff;
+  padding: 0.8rem 0.9rem;
+  font-size: 0.95rem;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tag {
+  border: 1px solid #2b3347;
+  border-radius: 999px;
+  background: #121722;
+  color: #b7c2dd;
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+}
+
+.tag.active {
+  border-color: #4f7cff;
+  color: #dfe8ff;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.9rem;
+}
+
+.card {
+  border: 1px solid #25314a;
+  background: #111827;
+  border-radius: 16px;
+  padding: 1rem;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.cardHead {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem;
+}
+
+.icon {
+  font-size: 1.35rem;
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #172036;
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.desc {
+  margin: 0.35rem 0 0;
+  color: #a5b2d2;
+  font-size: 0.88rem;
+}
+
+.chipWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.chip {
+  border: 1px solid #2d3953;
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.75rem;
+  color: #a8b7dc;
+}
+
+.openBtn {
+  text-decoration: none;
+  color: #dfe8ff;
+  border: 1px solid #3253b8;
+  border-radius: 10px;
+  text-align: center;
+  padding: 0.45rem 0.6rem;
+  background: #1d3372;
+}
+
+.openBtn:hover {
+  filter: brightness(1.08);
+}

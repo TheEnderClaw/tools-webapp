@@ -1,0 +1,9 @@
+{
+  "id": "unit-converter",
+  "name": "Unit Converter",
+  "icon": "📏",
+  "tags": ["math", "conversion", "utility"],
+  "description": "Convert basic units quickly (dummy tool).",
+  "path": "#/tools/unit-converter",
+  "version": "0.1.0"
+}
