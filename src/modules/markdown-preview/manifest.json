@@ -3,7 +3,7 @@
   "name": "Markdown Preview",
   "icon": "📝",
   "tags": ["text", "developer", "preview"],
-  "description": "Live markdown preview panel (dummy tool).",
+  "description": "Write Markdown and preview rendered HTML live.",
   "path": "#/tools/markdown-preview",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

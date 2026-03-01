@@ -145,8 +145,87 @@ body {
   text-align: center;
   padding: 0.45rem 0.6rem;
   background: #1d3372;
+  cursor: pointer;
 }
 
 .openBtn:hover {
   filter: brightness(1.08);
+}
+
+.toolPanel {
+  border-top: 1px solid #24314f;
+  padding-top: 0.8rem;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+input,
+select,
+textarea {
+  background: #0d1524;
+  color: #eaf0ff;
+  border: 1px solid #314263;
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+}
+
+input[type='range'] {
+  width: 100%;
+}
+
+.checks {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.result {
+  margin: 0;
+  color: #9fc2ff;
+}
+
+.mono {
+  min-height: 78px;
+  width: 100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.split {
+  grid-template-columns: 1fr;
+}
+
+.split textarea {
+  min-height: 140px;
+  width: 100%;
+}
+
+.preview {
+  border: 1px solid #314263;
+  border-radius: 8px;
+  padding: 0.65rem;
+  background: #0d1524;
+  min-height: 140px;
+  overflow-wrap: anywhere;
+}
+
+.preview h1,
+.preview h2,
+.preview h3 {
+  margin: 0.2rem 0 0.5rem;
+}
+
+.preview p,
+.preview ul {
+  margin: 0.35rem 0;
+}
+
+.preview code {
+  background: #1d2942;
+  border-radius: 6px;
+  padding: 0.1rem 0.3rem;
 }

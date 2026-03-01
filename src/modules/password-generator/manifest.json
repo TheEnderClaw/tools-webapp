@@ -3,7 +3,7 @@
   "name": "Password Generator",
   "icon": "🔐",
   "tags": ["security", "text", "utility"],
-  "description": "Generate secure random passwords (dummy tool).",
+  "description": "Generate strong passwords with custom rules.",
   "path": "#/tools/password-generator",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

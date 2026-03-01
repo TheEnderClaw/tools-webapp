@@ -3,7 +3,7 @@
   "name": "Unit Converter",
   "icon": "📏",
   "tags": ["math", "conversion", "utility"],
-  "description": "Convert basic units quickly (dummy tool).",
+  "description": "Convert length and temperature units instantly.",
   "path": "#/tools/unit-converter",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }
