@@ -292,6 +292,21 @@ input[type='range'] {
   margin-top: 0.35rem;
 }
 
+.svgThumbAdd {
+  cursor: pointer;
+  min-height: 160px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  border-style: dashed;
+}
+
+.svgPlus {
+  font-size: 2rem;
+  line-height: 1;
+  color: #9db8f5;
+}
+
 .svgBigPreview {
   min-height: 66vh;
   max-height: 66vh;

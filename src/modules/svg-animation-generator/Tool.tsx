@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 type Frame = { id: number; svg: string; enabled: boolean; name: string }
 
@@ -60,12 +60,12 @@ export default function Tool() {
     { id: 2, svg: sample2, enabled: true, name: 'Frame 2' },
     { id: 3, svg: sample3, enabled: true, name: 'Frame 3' },
   ])
-  const [fps, setFps] = useState(8)
+  const [fps, setFps] = useState(24)
   const [loop, setLoop] = useState(true)
   const [playing, setPlaying] = useState(false)
   const [index, setIndex] = useState(0)
-  const [draft, setDraft] = useState('')
   const [draggedId, setDraggedId] = useState<number | null>(null)
+  const fileRef = useRef<HTMLInputElement | null>(null)
 
   const activeFrames = useMemo(() => frames.filter((f) => f.enabled), [frames])
   const interval = Math.max(1, Math.round(1000 / Math.max(1, fps)))
@@ -88,7 +88,6 @@ export default function Tool() {
   }, [activeFrames.length, index])
 
   const currentSvg = activeFrames[index]?.svg ?? ''
-  const canAdd = draft.includes('<svg') && draft.includes('</svg>')
 
   const appendFrames = (svgList: { svg: string; name: string }[]) => {
     if (!svgList.length) return
@@ -97,12 +96,6 @@ export default function Tool() {
       ...prev,
       ...svgList.map((x, i) => ({ id: seed + i, svg: x.svg.trim(), enabled: true, name: x.name || `Frame ${prev.length + i + 1}` })),
     ])
-  }
-
-  const addFrameFromText = () => {
-    if (!canAdd) return
-    appendFrames([{ svg: draft, name: `Frame ${frames.length + 1}` }])
-    setDraft('')
   }
 
   const removeFrame = (id: number) => setFrames((prev) => prev.filter((f) => f.id !== id))
@@ -123,9 +116,7 @@ export default function Tool() {
   const onFiles = async (files: FileList | null) => {
     if (!files) return
     const svgFiles = Array.from(files).filter((f) => f.type.includes('svg') || f.name.toLowerCase().endsWith('.svg'))
-    const loaded = await Promise.all(
-      svgFiles.map(async (f) => ({ name: f.name, svg: await f.text() })),
-    )
+    const loaded = await Promise.all(svgFiles.map(async (f) => ({ name: f.name, svg: await f.text() })))
     appendFrames(loaded.filter((x) => x.svg.includes('<svg')))
   }
 
@@ -148,6 +139,68 @@ export default function Tool() {
     <div className="toolPage">
       <h2>SVG Animation Generator</h2>
 
+      <h3>Frames</h3>
+      <div className="svgFramesGrid">
+        {frames.map((f, i) => (
+          <div
+            key={f.id}
+            className={`svgThumb ${f.enabled ? '' : 'off'}`}
+            draggable
+            onDragStart={() => setDraggedId(f.id)}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={() => {
+              if (draggedId !== null) reorderByIds(draggedId, f.id)
+              setDraggedId(null)
+            }}
+          >
+            <div className="svgThumbPreview" dangerouslySetInnerHTML={{ __html: f.svg }} />
+            <div className="svgThumbRow">
+              <small>
+                {i + 1}. {f.name}
+              </small>
+            </div>
+            <div className="svgThumbRow">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={f.enabled}
+                  onChange={(e) =>
+                    setFrames((prev) => prev.map((x) => (x.id === f.id ? { ...x, enabled: e.target.checked } : x)))
+                  }
+                />{' '}
+                On
+              </label>
+              <button className="openBtn" onClick={() => removeFrame(f.id)}>
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+
+        <div
+          className="svgThumb svgThumbAdd"
+          onClick={() => fileRef.current?.click()}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault()
+            onFiles(e.dataTransfer.files)
+          }}
+          title="Add SVG files"
+        >
+          <div className="svgPlus">+</div>
+          <small>Add SVG</small>
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".svg,image/svg+xml"
+            multiple
+            style={{ display: 'none' }}
+            onChange={(e) => onFiles(e.target.files)}
+          />
+        </div>
+      </div>
+
+      <h3>Preview</h3>
       <div className="row">
         <label>FPS</label>
         <input
@@ -167,66 +220,6 @@ export default function Tool() {
           Download SVG
         </button>
       </div>
-
-      <h3>Frames</h3>
-      <div className="svgFramesGrid">
-        {frames.map((f, i) => (
-          <div
-            key={f.id}
-            className={`svgThumb ${f.enabled ? '' : 'off'}`}
-            draggable
-            onDragStart={() => setDraggedId(f.id)}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={() => {
-              if (draggedId !== null) reorderByIds(draggedId, f.id)
-              setDraggedId(null)
-            }}
-          >
-            <div className="svgThumbPreview" dangerouslySetInnerHTML={{ __html: f.svg }} />
-            <div className="svgThumbRow">
-              <small>{i + 1}. {f.name}</small>
-            </div>
-            <div className="svgThumbRow">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={f.enabled}
-                  onChange={(e) => setFrames((prev) => prev.map((x) => (x.id === f.id ? { ...x, enabled: e.target.checked } : x)))}
-                />{' '}
-                On
-              </label>
-              <button className="openBtn" onClick={() => removeFrame(f.id)}>
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <h3>Add SVG Frames</h3>
-      <div
-        className="preview"
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => {
-          e.preventDefault()
-          onFiles(e.dataTransfer.files)
-        }}
-      >
-        <p>Drop .svg files here</p>
-        <input type="file" accept=".svg,image/svg+xml" multiple onChange={(e) => onFiles(e.target.files)} />
-      </div>
-
-      <textarea
-        className="mono"
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        placeholder="Or paste full <svg ...>...</svg> markup"
-      />
-      <button className="openBtn" onClick={addFrameFromText} disabled={!canAdd}>
-        Add pasted SVG
-      </button>
-
-      <h3>Preview</h3>
       <div className="svgBigPreview" dangerouslySetInnerHTML={{ __html: currentSvg || '<p>No active frame</p>' }} />
       <p className="result">
         Active frame {activeFrames.length ? index + 1 : 0} / {activeFrames.length}
