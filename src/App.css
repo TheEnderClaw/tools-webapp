@@ -229,3 +229,12 @@ input[type='range'] {
   border-radius: 6px;
   padding: 0.1rem 0.3rem;
 }
+
+.toolPage {
+  border: 1px solid #25314a;
+  background: #111827;
+  border-radius: 16px;
+  padding: 1rem;
+  display: grid;
+  gap: 0.8rem;
+}
