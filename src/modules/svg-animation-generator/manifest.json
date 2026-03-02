@@ -1,0 +1,9 @@
+{
+  "id": "svg-animation-generator",
+  "name": "SVG Animation Generator",
+  "icon": "🎞️",
+  "tags": ["svg", "animation", "design", "developer"],
+  "description": "Arrange SVG frames, set FPS, preview, loop, and download animated SVG.",
+  "path": "#/tools/svg-animation-generator",
+  "version": "0.1.0"
+}
