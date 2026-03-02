@@ -1,0 +1,13 @@
+{
+  "id": "json-formatter",
+  "name": "JSON Formatter",
+  "icon": "\ud83e\uddfe",
+  "tags": [
+    "developer",
+    "json",
+    "validation"
+  ],
+  "description": "Pretty-print and validate JSON.",
+  "path": "#/tools/json-formatter",
+  "version": "0.1.0"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "random-picker",
+  "name": "Random Picker",
+  "icon": "\ud83c\udfb2",
+  "tags": [
+    "random",
+    "utility",
+    "fun"
+  ],
+  "description": "Pick random item(s) from a list.",
+  "path": "#/tools/random-picker",
+  "version": "0.1.0"
+}

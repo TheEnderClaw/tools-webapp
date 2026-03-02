@@ -1,0 +1,13 @@
+{
+  "id": "sha256-hasher",
+  "name": "SHA-256 Hasher",
+  "icon": "#\ufe0f\u20e3",
+  "tags": [
+    "security",
+    "hash",
+    "developer"
+  ],
+  "description": "Hash text with SHA-256 in-browser.",
+  "path": "#/tools/sha256-hasher",
+  "version": "0.1.0"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "regex-tester",
+  "name": "Regex Tester",
+  "icon": "\ud83e\uddea",
+  "tags": [
+    "developer",
+    "regex",
+    "text"
+  ],
+  "description": "Test regex against text quickly.",
+  "path": "#/tools/regex-tester",
+  "version": "0.1.0"
+}

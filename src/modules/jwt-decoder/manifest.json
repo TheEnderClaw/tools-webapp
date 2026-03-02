@@ -1,0 +1,13 @@
+{
+  "id": "jwt-decoder",
+  "name": "JWT Decoder",
+  "icon": "\ud83d\udd13",
+  "tags": [
+    "security",
+    "developer",
+    "token"
+  ],
+  "description": "Decode JWT header/payload (no verification).",
+  "path": "#/tools/jwt-decoder",
+  "version": "0.1.0"
+}

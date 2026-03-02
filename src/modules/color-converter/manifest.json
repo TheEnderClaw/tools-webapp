@@ -1,0 +1,13 @@
+{
+  "id": "color-converter",
+  "name": "Color Converter",
+  "icon": "\ud83c\udfa8",
+  "tags": [
+    "design",
+    "color",
+    "utility"
+  ],
+  "description": "Convert HEX and RGB values.",
+  "path": "#/tools/color-converter",
+  "version": "0.1.0"
+}

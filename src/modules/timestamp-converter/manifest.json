@@ -1,0 +1,13 @@
+{
+  "id": "timestamp-converter",
+  "name": "Timestamp Converter",
+  "icon": "\ud83d\udd52",
+  "tags": [
+    "time",
+    "developer",
+    "utility"
+  ],
+  "description": "Convert UNIX timestamps and ISO dates.",
+  "path": "#/tools/timestamp-converter",
+  "version": "0.1.0"
+}

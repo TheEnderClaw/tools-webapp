@@ -1,0 +1,13 @@
+{
+  "id": "percentage-calculator",
+  "name": "Percentage Calculator",
+  "icon": "\ud83d\udcaf",
+  "tags": [
+    "math",
+    "finance",
+    "utility"
+  ],
+  "description": "Quick percentage calculations.",
+  "path": "#/tools/percentage-calculator",
+  "version": "0.1.0"
+}

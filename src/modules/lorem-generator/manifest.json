@@ -1,0 +1,13 @@
+{
+  "id": "lorem-generator",
+  "name": "Lorem Ipsum Generator",
+  "icon": "\ud83d\udcc4",
+  "tags": [
+    "text",
+    "writing",
+    "dummy-data"
+  ],
+  "description": "Generate lorem ipsum paragraphs.",
+  "path": "#/tools/lorem-generator",
+  "version": "0.1.0"
+}

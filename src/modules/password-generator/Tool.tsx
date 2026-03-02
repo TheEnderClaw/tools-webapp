@@ -29,7 +29,17 @@ export default function PasswordGeneratorTool() {
     <div className="toolPage">
       <h2>Password Generator</h2>
       <label>Length: {len}</label>
-      <input type="range" min={8} max={64} value={len} onChange={(e) => setLen(Number(e.target.value))} />
+      <div className="row">
+        <input type="range" min={8} max={64} value={len} onChange={(e) => setLen(Number(e.target.value))} />
+        <input
+          type="number"
+          min={8}
+          max={64}
+          value={len}
+          onChange={(e) => setLen(Math.max(8, Math.min(64, Number(e.target.value) || 8)))}
+          style={{ width: 88 }}
+        />
+      </div>
       <div className="checks">
         <label><input type="checkbox" checked={u} onChange={(e) => setU(e.target.checked)} /> Uppercase</label>
         <label><input type="checkbox" checked={l} onChange={(e) => setL(e.target.checked)} /> Lowercase</label>

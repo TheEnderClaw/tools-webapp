@@ -1,0 +1,13 @@
+{
+  "id": "text-case-converter",
+  "name": "Text Case Converter",
+  "icon": "\ud83d\udd24",
+  "tags": [
+    "text",
+    "writing",
+    "utility"
+  ],
+  "description": "Uppercase, lowercase, title case.",
+  "path": "#/tools/text-case-converter",
+  "version": "0.1.0"
+}

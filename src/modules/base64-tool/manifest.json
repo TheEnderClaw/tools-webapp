@@ -1,0 +1,13 @@
+{
+  "id": "base64-tool",
+  "name": "Base64 Encode/Decode",
+  "icon": "\ud83e\uddec",
+  "tags": [
+    "text",
+    "encoding",
+    "utility"
+  ],
+  "description": "Encode and decode Base64 text.",
+  "path": "#/tools/base64-tool",
+  "version": "0.1.0"
+}

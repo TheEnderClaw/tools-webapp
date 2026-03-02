@@ -1,0 +1,13 @@
+{
+  "id": "csv-to-json",
+  "name": "CSV to JSON",
+  "icon": "\ud83d\udcca",
+  "tags": [
+    "developer",
+    "data",
+    "conversion"
+  ],
+  "description": "Convert simple CSV to JSON.",
+  "path": "#/tools/csv-to-json",
+  "version": "0.1.0"
+}

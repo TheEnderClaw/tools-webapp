@@ -78,6 +78,7 @@ function App() {
           <a className="openBtn" href="#/">← Back to tools</a>
         </header>
         <Tool />
+        <footer className="footer">Source code: <a href="https://github.com/TheEnderClaw/tools-webapp" target="_blank" rel="noreferrer">github.com/TheEnderClaw/tools-webapp</a></footer>
       </main>
     )
   }
@@ -125,6 +126,7 @@ function App() {
           </article>
         ))}
       </section>
+      <footer className="footer">Source code: <a href="https://github.com/TheEnderClaw/tools-webapp" target="_blank" rel="noreferrer">github.com/TheEnderClaw/tools-webapp</a></footer>
     </main>
   )
 }

@@ -1,0 +1,13 @@
+{
+  "id": "number-base-converter",
+  "name": "Number Base Converter",
+  "icon": "\ud83e\uddee",
+  "tags": [
+    "math",
+    "developer",
+    "conversion"
+  ],
+  "description": "Convert numbers between BIN/OCT/DEC/HEX.",
+  "path": "#/tools/number-base-converter",
+  "version": "0.1.0"
+}

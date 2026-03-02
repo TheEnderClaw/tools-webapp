@@ -1,0 +1,13 @@
+{
+  "id": "uuid-generator",
+  "name": "UUID Generator",
+  "icon": "\ud83c\udd94",
+  "tags": [
+    "developer",
+    "random",
+    "utility"
+  ],
+  "description": "Generate UUID v4 values.",
+  "path": "#/tools/uuid-generator",
+  "version": "0.1.0"
+}

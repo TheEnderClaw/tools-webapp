@@ -1,0 +1,13 @@
+{
+  "id": "word-counter",
+  "name": "Word Counter",
+  "icon": "\ud83d\udd22",
+  "tags": [
+    "text",
+    "writing",
+    "stats"
+  ],
+  "description": "Count words, chars, lines.",
+  "path": "#/tools/word-counter",
+  "version": "0.1.0"
+}

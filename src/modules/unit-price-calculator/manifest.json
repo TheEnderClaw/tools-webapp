@@ -1,0 +1,13 @@
+{
+  "id": "unit-price-calculator",
+  "name": "Unit Price Calculator",
+  "icon": "\ud83d\uded2",
+  "tags": [
+    "shopping",
+    "finance",
+    "utility"
+  ],
+  "description": "Compare prices by quantity.",
+  "path": "#/tools/unit-price-calculator",
+  "version": "0.1.0"
+}

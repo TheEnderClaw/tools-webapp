@@ -1,0 +1,13 @@
+{
+  "id": "qr-link-generator",
+  "name": "QR Link Generator",
+  "icon": "\u25a6",
+  "tags": [
+    "web",
+    "share",
+    "utility"
+  ],
+  "description": "Generate a QR code image for a URL.",
+  "path": "#/tools/qr-link-generator",
+  "version": "0.1.0"
+}

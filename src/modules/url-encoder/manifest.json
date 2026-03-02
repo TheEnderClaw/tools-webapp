@@ -1,0 +1,13 @@
+{
+  "id": "url-encoder",
+  "name": "URL Encode/Decode",
+  "icon": "\ud83d\udd17",
+  "tags": [
+    "text",
+    "encoding",
+    "web"
+  ],
+  "description": "Encode/decode URL components.",
+  "path": "#/tools/url-encoder",
+  "version": "0.1.0"
+}
