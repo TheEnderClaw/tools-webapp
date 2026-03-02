@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 
-type Frame = { id: number; svg: string }
+type Frame = { id: number; svg: string; enabled: boolean; name: string }
 
 const sample1 = `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="60" r="18" fill="#60a5fa"/></svg>`
 const sample2 = `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="60" r="18" fill="#60a5fa"/></svg>`
@@ -21,10 +21,7 @@ function buildDownloadSvg(frames: string[], fps: number, loop: boolean) {
   const base = parsed[0] ?? { viewBox: '0 0 120 120', width: '120', height: '120', inner: '' }
 
   const groups = parsed
-    .map(
-      (f, i) =>
-        `<g id="frame-${i}" style="display:${i === 0 ? 'inline' : 'none'}">${f.inner}</g>`,
-    )
+    .map((f, i) => `<g id="frame-${i}" style="display:${i === 0 ? 'inline' : 'none'}">${f.inner}</g>`)
     .join('')
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -59,59 +56,83 @@ ${groups}
 
 export default function Tool() {
   const [frames, setFrames] = useState<Frame[]>([
-    { id: 1, svg: sample1 },
-    { id: 2, svg: sample2 },
-    { id: 3, svg: sample3 },
+    { id: 1, svg: sample1, enabled: true, name: 'Frame 1' },
+    { id: 2, svg: sample2, enabled: true, name: 'Frame 2' },
+    { id: 3, svg: sample3, enabled: true, name: 'Frame 3' },
   ])
   const [fps, setFps] = useState(8)
   const [loop, setLoop] = useState(true)
   const [playing, setPlaying] = useState(false)
   const [index, setIndex] = useState(0)
   const [draft, setDraft] = useState('')
+  const [draggedId, setDraggedId] = useState<number | null>(null)
 
+  const activeFrames = useMemo(() => frames.filter((f) => f.enabled), [frames])
   const interval = Math.max(1, Math.round(1000 / Math.max(1, fps)))
 
   useEffect(() => {
-    if (!playing || frames.length === 0) return
+    if (!playing || activeFrames.length === 0) return
     const id = window.setInterval(() => {
       setIndex((prev) => {
-        if (prev < frames.length - 1) return prev + 1
+        if (prev < activeFrames.length - 1) return prev + 1
         if (loop) return 0
         setPlaying(false)
         return prev
       })
     }, interval)
     return () => window.clearInterval(id)
-  }, [playing, frames.length, loop, interval])
+  }, [playing, activeFrames.length, loop, interval])
 
   useEffect(() => {
-    if (index > frames.length - 1) setIndex(Math.max(0, frames.length - 1))
-  }, [frames.length, index])
+    if (index > activeFrames.length - 1) setIndex(Math.max(0, activeFrames.length - 1))
+  }, [activeFrames.length, index])
 
-  const currentSvg = frames[index]?.svg ?? ''
+  const currentSvg = activeFrames[index]?.svg ?? ''
   const canAdd = draft.includes('<svg') && draft.includes('</svg>')
 
-  const addFrame = () => {
-    if (!canAdd) return
-    const nextId = Date.now()
-    setFrames((prev) => [...prev, { id: nextId, svg: draft.trim() }])
-    setDraft('')
+  const appendFrames = (svgList: { svg: string; name: string }[]) => {
+    if (!svgList.length) return
+    const seed = Date.now()
+    setFrames((prev) => [
+      ...prev,
+      ...svgList.map((x, i) => ({ id: seed + i, svg: x.svg.trim(), enabled: true, name: x.name || `Frame ${prev.length + i + 1}` })),
+    ])
   }
 
-  const move = (pos: number, dir: -1 | 1) => {
-    setFrames((prev) => {
-      const next = [...prev]
-      const to = pos + dir
-      if (to < 0 || to >= next.length) return prev
-      ;[next[pos], next[to]] = [next[to], next[pos]]
-      return next
-    })
-    setIndex((prev) => Math.max(0, Math.min(frames.length - 1, prev + dir)))
+  const addFrameFromText = () => {
+    if (!canAdd) return
+    appendFrames([{ svg: draft, name: `Frame ${frames.length + 1}` }])
+    setDraft('')
   }
 
   const removeFrame = (id: number) => setFrames((prev) => prev.filter((f) => f.id !== id))
 
-  const downloadContent = useMemo(() => buildDownloadSvg(frames.map((f) => f.svg), fps, loop), [frames, fps, loop])
+  const reorderByIds = (sourceId: number, targetId: number) => {
+    if (sourceId === targetId) return
+    setFrames((prev) => {
+      const from = prev.findIndex((f) => f.id === sourceId)
+      const to = prev.findIndex((f) => f.id === targetId)
+      if (from < 0 || to < 0) return prev
+      const next = [...prev]
+      const [item] = next.splice(from, 1)
+      next.splice(to, 0, item)
+      return next
+    })
+  }
+
+  const onFiles = async (files: FileList | null) => {
+    if (!files) return
+    const svgFiles = Array.from(files).filter((f) => f.type.includes('svg') || f.name.toLowerCase().endsWith('.svg'))
+    const loaded = await Promise.all(
+      svgFiles.map(async (f) => ({ name: f.name, svg: await f.text() })),
+    )
+    appendFrames(loaded.filter((x) => x.svg.includes('<svg')))
+  }
+
+  const downloadContent = useMemo(
+    () => buildDownloadSvg(activeFrames.map((f) => f.svg), fps, loop),
+    [activeFrames, fps, loop],
+  )
 
   const download = () => {
     const blob = new Blob([downloadContent], { type: 'image/svg+xml;charset=utf-8' })
@@ -129,32 +150,87 @@ export default function Tool() {
 
       <div className="row">
         <label>FPS</label>
-        <input type="number" min={1} max={60} value={fps} onChange={(e) => setFps(Math.max(1, Math.min(60, Number(e.target.value) || 1)))} />
+        <input
+          type="number"
+          min={1}
+          max={60}
+          value={fps}
+          onChange={(e) => setFps(Math.max(1, Math.min(60, Number(e.target.value) || 1)))}
+        />
         <label>
           <input type="checkbox" checked={loop} onChange={(e) => setLoop(e.target.checked)} /> Loop
         </label>
-        <button className="openBtn" onClick={() => setPlaying((p) => !p)}>{playing ? 'Pause' : 'Play'}</button>
-        <button className="openBtn" onClick={download} disabled={frames.length === 0}>Download SVG</button>
+        <button className="openBtn" onClick={() => setPlaying((p) => !p)}>
+          {playing ? 'Pause' : 'Play'}
+        </button>
+        <button className="openBtn" onClick={download} disabled={activeFrames.length === 0}>
+          Download SVG
+        </button>
       </div>
 
-      <div className="preview" style={{ minHeight: 240, display: 'grid', placeItems: 'center' }} dangerouslySetInnerHTML={{ __html: currentSvg || '<p>No frame</p>' }} />
-      <p className="result">Frame {frames.length ? index + 1 : 0} / {frames.length}</p>
-
-      <h3>Frame Order</h3>
-      <div className="checks">
+      <h3>Frames</h3>
+      <div className="svgFramesGrid">
         {frames.map((f, i) => (
-          <div key={f.id} className="row">
-            <button className="openBtn" onClick={() => setIndex(i)}>Show {i + 1}</button>
-            <button className="openBtn" onClick={() => move(i, -1)} disabled={i === 0}>↑</button>
-            <button className="openBtn" onClick={() => move(i, 1)} disabled={i === frames.length - 1}>↓</button>
-            <button className="openBtn" onClick={() => removeFrame(f.id)} disabled={frames.length <= 1}>Remove</button>
+          <div
+            key={f.id}
+            className={`svgThumb ${f.enabled ? '' : 'off'}`}
+            draggable
+            onDragStart={() => setDraggedId(f.id)}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={() => {
+              if (draggedId !== null) reorderByIds(draggedId, f.id)
+              setDraggedId(null)
+            }}
+          >
+            <div className="svgThumbPreview" dangerouslySetInnerHTML={{ __html: f.svg }} />
+            <div className="svgThumbRow">
+              <small>{i + 1}. {f.name}</small>
+            </div>
+            <div className="svgThumbRow">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={f.enabled}
+                  onChange={(e) => setFrames((prev) => prev.map((x) => (x.id === f.id ? { ...x, enabled: e.target.checked } : x)))}
+                />{' '}
+                On
+              </label>
+              <button className="openBtn" onClick={() => removeFrame(f.id)}>
+                Delete
+              </button>
+            </div>
           </div>
         ))}
       </div>
 
-      <h3>Add SVG Frame</h3>
-      <textarea className="mono" value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Paste full <svg ...>...</svg> markup" />
-      <button className="openBtn" onClick={addFrame} disabled={!canAdd}>Add frame</button>
+      <h3>Add SVG Frames</h3>
+      <div
+        className="preview"
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault()
+          onFiles(e.dataTransfer.files)
+        }}
+      >
+        <p>Drop .svg files here</p>
+        <input type="file" accept=".svg,image/svg+xml" multiple onChange={(e) => onFiles(e.target.files)} />
+      </div>
+
+      <textarea
+        className="mono"
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        placeholder="Or paste full <svg ...>...</svg> markup"
+      />
+      <button className="openBtn" onClick={addFrameFromText} disabled={!canAdd}>
+        Add pasted SVG
+      </button>
+
+      <h3>Preview</h3>
+      <div className="svgBigPreview" dangerouslySetInnerHTML={{ __html: currentSvg || '<p>No active frame</p>' }} />
+      <p className="result">
+        Active frame {activeFrames.length ? index + 1 : 0} / {activeFrames.length}
+      </p>
     </div>
   )
 }
