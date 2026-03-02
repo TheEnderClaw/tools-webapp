@@ -1,4 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  closestCenter,
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 type Frame = { id: number; svg: string; enabled: boolean; name: string }
 
@@ -54,6 +72,50 @@ ${groups}
 </svg>`
 }
 
+function SortableFrame({
+  frame,
+  index,
+  onToggle,
+  onDelete,
+}: {
+  frame: Frame
+  index: number
+  onToggle: (id: number, enabled: boolean) => void
+  onDelete: (id: number) => void
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: frame.id })
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={`svgThumb ${frame.enabled ? '' : 'off'} ${isDragging ? 'dragging' : ''}`}
+      {...attributes}
+      {...listeners}
+    >
+      <div className="svgThumbPreview" dangerouslySetInnerHTML={{ __html: frame.svg }} />
+      <div className="svgThumbRow">
+        <small>
+          {index + 1}. {frame.name}
+        </small>
+      </div>
+      <div className="svgThumbRow">
+        <label>
+          <input type="checkbox" checked={frame.enabled} onChange={(e) => onToggle(frame.id, e.target.checked)} /> On
+        </label>
+        <button className="openBtn" onClick={() => onDelete(frame.id)}>
+          Delete
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function FileDropAnywhere() {
+  const { setNodeRef, isOver } = useDroppable({ id: 'file-drop-anywhere' })
+  return <div ref={setNodeRef} className={isOver ? 'globalDropHint active' : 'globalDropHint'}>Drop SVG files to import</div>
+}
+
 export default function Tool() {
   const [frames, setFrames] = useState<Frame[]>([
     { id: 1, svg: sample1, enabled: true, name: 'Frame 1' },
@@ -64,9 +126,11 @@ export default function Tool() {
   const [loop, setLoop] = useState(true)
   const [playing, setPlaying] = useState(false)
   const [index, setIndex] = useState(0)
-  const [draggedId, setDraggedId] = useState<number | null>(null)
+  const [activeDragId, setActiveDragId] = useState<number | null>(null)
+  const [draggingFiles, setDraggingFiles] = useState(false)
   const fileRef = useRef<HTMLInputElement | null>(null)
 
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }))
   const activeFrames = useMemo(() => frames.filter((f) => f.enabled), [frames])
   const interval = Math.max(1, Math.round(1000 / Math.max(1, fps)))
 
@@ -87,6 +151,31 @@ export default function Tool() {
     if (index > activeFrames.length - 1) setIndex(Math.max(0, activeFrames.length - 1))
   }, [activeFrames.length, index])
 
+  useEffect(() => {
+    const onDragOver = (e: DragEvent) => {
+      const hasFiles = Array.from(e.dataTransfer?.types ?? []).includes('Files')
+      if (!hasFiles) return
+      e.preventDefault()
+      setDraggingFiles(true)
+    }
+    const onDragLeave = () => setDraggingFiles(false)
+    const onDrop = (e: DragEvent) => {
+      const hasFiles = Array.from(e.dataTransfer?.types ?? []).includes('Files')
+      if (!hasFiles) return
+      e.preventDefault()
+      setDraggingFiles(false)
+      onFiles(e.dataTransfer?.files ?? null)
+    }
+    window.addEventListener('dragover', onDragOver)
+    window.addEventListener('dragleave', onDragLeave)
+    window.addEventListener('drop', onDrop)
+    return () => {
+      window.removeEventListener('dragover', onDragOver)
+      window.removeEventListener('dragleave', onDragLeave)
+      window.removeEventListener('drop', onDrop)
+    }
+  })
+
   const currentSvg = activeFrames[index]?.svg ?? ''
 
   const appendFrames = (svgList: { svg: string; name: string }[]) => {
@@ -100,24 +189,27 @@ export default function Tool() {
 
   const removeFrame = (id: number) => setFrames((prev) => prev.filter((f) => f.id !== id))
 
-  const reorderByIds = (sourceId: number, targetId: number) => {
-    if (sourceId === targetId) return
-    setFrames((prev) => {
-      const from = prev.findIndex((f) => f.id === sourceId)
-      const to = prev.findIndex((f) => f.id === targetId)
-      if (from < 0 || to < 0) return prev
-      const next = [...prev]
-      const [item] = next.splice(from, 1)
-      next.splice(to, 0, item)
-      return next
-    })
-  }
-
   const onFiles = async (files: FileList | null) => {
     if (!files) return
     const svgFiles = Array.from(files).filter((f) => f.type.includes('svg') || f.name.toLowerCase().endsWith('.svg'))
     const loaded = await Promise.all(svgFiles.map(async (f) => ({ name: f.name, svg: await f.text() })))
     appendFrames(loaded.filter((x) => x.svg.includes('<svg')))
+  }
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveDragId(Number(event.active.id))
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveDragId(null)
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    setFrames((prev) => {
+      const oldIndex = prev.findIndex((x) => x.id === active.id)
+      const newIndex = prev.findIndex((x) => x.id === over.id)
+      if (oldIndex < 0 || newIndex < 0) return prev
+      return arrayMove(prev, oldIndex, newIndex)
+    })
   }
 
   const downloadContent = useMemo(
@@ -138,67 +230,50 @@ export default function Tool() {
   return (
     <div className="toolPage">
       <h2>SVG Animation Generator</h2>
+      {draggingFiles && <FileDropAnywhere />}
 
       <h3>Frames</h3>
-      <div className="svgFramesGrid">
-        {frames.map((f, i) => (
-          <div
-            key={f.id}
-            className={`svgThumb ${f.enabled ? '' : 'off'}`}
-            draggable
-            onDragStart={() => setDraggedId(f.id)}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={() => {
-              if (draggedId !== null) reorderByIds(draggedId, f.id)
-              setDraggedId(null)
-            }}
-          >
-            <div className="svgThumbPreview" dangerouslySetInnerHTML={{ __html: f.svg }} />
-            <div className="svgThumbRow">
-              <small>
-                {i + 1}. {f.name}
-              </small>
-            </div>
-            <div className="svgThumbRow">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={f.enabled}
-                  onChange={(e) =>
-                    setFrames((prev) => prev.map((x) => (x.id === f.id ? { ...x, enabled: e.target.checked } : x)))
-                  }
-                />{' '}
-                On
-              </label>
-              <button className="openBtn" onClick={() => removeFrame(f.id)}>
-                Delete
-              </button>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <SortableContext items={frames.map((f) => f.id)} strategy={rectSortingStrategy}>
+          <div className="svgFramesGrid">
+            {frames.map((f, i) => (
+              <SortableFrame
+                key={f.id}
+                frame={f}
+                index={i}
+                onToggle={(id, enabled) =>
+                  setFrames((prev) => prev.map((x) => (x.id === id ? { ...x, enabled } : x)))
+                }
+                onDelete={removeFrame}
+              />
+            ))}
+
+            <div className="svgThumb svgThumbAdd" onClick={() => fileRef.current?.click()} title="Add SVG files">
+              <div className="svgPlus">+</div>
+              <small>Add SVG</small>
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".svg,image/svg+xml"
+                multiple
+                style={{ display: 'none' }}
+                onChange={(e) => onFiles(e.target.files)}
+              />
             </div>
           </div>
-        ))}
+        </SortableContext>
 
-        <div
-          className="svgThumb svgThumbAdd"
-          onClick={() => fileRef.current?.click()}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => {
-            e.preventDefault()
-            onFiles(e.dataTransfer.files)
-          }}
-          title="Add SVG files"
-        >
-          <div className="svgPlus">+</div>
-          <small>Add SVG</small>
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".svg,image/svg+xml"
-            multiple
-            style={{ display: 'none' }}
-            onChange={(e) => onFiles(e.target.files)}
-          />
-        </div>
-      </div>
+        <DragOverlay>
+          {activeDragId ? (
+            <div className="svgThumb dragging overlay">
+              <div
+                className="svgThumbPreview"
+                dangerouslySetInnerHTML={{ __html: frames.find((f) => f.id === activeDragId)?.svg ?? '' }}
+              />
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
 
       <h3>Preview</h3>
       <div className="row">
