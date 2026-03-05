@@ -3,7 +3,7 @@
   "name": "Image Converter",
   "icon": "🖼️",
   "tags": ["media", "conversion", "image"],
-  "description": "Convert images to PNG, JPG, or WebP directly in your browser.",
+  "description": "Convert images to PNG, JPG, WebP, BMP, TIFF, and GIF.",
   "path": "#/tools/image-converter",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

@@ -2,7 +2,21 @@ import { useMemo, useState } from 'react'
 import { fetchFile } from '@ffmpeg/util'
 import { getFFmpeg } from '../../lib/ffmpeg'
 
-const targets = ['mp4', 'webm', 'gif'] as const
+const targets = ['mp4', 'webm', 'mkv', 'mov', 'avi', 'm4v', 'flv', '3gp', 'mpeg', 'ts', 'gif'] as const
+
+const mimeByFormat: Record<(typeof targets)[number], string> = {
+  mp4: 'video/mp4',
+  webm: 'video/webm',
+  mkv: 'video/x-matroska',
+  mov: 'video/quicktime',
+  avi: 'video/x-msvideo',
+  m4v: 'video/x-m4v',
+  flv: 'video/x-flv',
+  '3gp': 'video/3gpp',
+  mpeg: 'video/mpeg',
+  ts: 'video/mp2t',
+  gif: 'image/gif',
+}
 
 export default function Tool() {
   const [file, setFile] = useState<File | null>(null)
@@ -37,8 +51,7 @@ export default function Tool() {
       const data = await ffmpeg.readFile(output)
       const bytes = data instanceof Uint8Array ? data : new TextEncoder().encode(String(data))
       const safeBytes = Uint8Array.from(bytes)
-      const mimeType = format === 'webm' ? 'video/webm' : format === 'gif' ? 'image/gif' : 'video/mp4'
-      const blob = new Blob([safeBytes.buffer], { type: mimeType })
+      const blob = new Blob([safeBytes.buffer], { type: mimeByFormat[format] })
 
       if (downloadUrl) URL.revokeObjectURL(downloadUrl)
       setDownloadUrl(URL.createObjectURL(blob))

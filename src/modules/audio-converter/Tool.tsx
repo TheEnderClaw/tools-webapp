@@ -2,7 +2,17 @@ import { useMemo, useState } from 'react'
 import { fetchFile } from '@ffmpeg/util'
 import { getFFmpeg } from '../../lib/ffmpeg'
 
-const targets = ['mp3', 'wav', 'ogg'] as const
+const targets = ['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a', 'opus'] as const
+
+const mimeByFormat: Record<(typeof targets)[number], string> = {
+  mp3: 'audio/mpeg',
+  wav: 'audio/wav',
+  ogg: 'audio/ogg',
+  aac: 'audio/aac',
+  flac: 'audio/flac',
+  m4a: 'audio/mp4',
+  opus: 'audio/opus',
+}
 
 export default function Tool() {
   const [file, setFile] = useState<File | null>(null)
@@ -33,9 +43,7 @@ export default function Tool() {
       const data = await ffmpeg.readFile(output)
       const bytes = data instanceof Uint8Array ? data : new TextEncoder().encode(String(data))
       const safeBytes = Uint8Array.from(bytes)
-
-      const mimeType = format === 'wav' ? 'audio/wav' : format === 'ogg' ? 'audio/ogg' : 'audio/mpeg'
-      const blob = new Blob([safeBytes.buffer], { type: mimeType })
+      const blob = new Blob([safeBytes.buffer], { type: mimeByFormat[format] })
 
       if (downloadUrl) URL.revokeObjectURL(downloadUrl)
       setDownloadUrl(URL.createObjectURL(blob))

@@ -3,7 +3,7 @@
   "name": "Video Converter",
   "icon": "🎬",
   "tags": ["media", "conversion", "video"],
-  "description": "Convert video files between MP4, WebM and GIF in-browser.",
+  "description": "Convert video files to MP4, WebM, MKV, MOV, AVI, M4V, FLV, 3GP, MPEG, TS, and GIF.",
   "path": "#/tools/video-converter",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

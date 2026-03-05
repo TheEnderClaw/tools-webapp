@@ -3,7 +3,7 @@
   "name": "Audio Converter",
   "icon": "🎵",
   "tags": ["media", "conversion", "audio"],
-  "description": "Convert audio (or extract audio from video) to MP3, WAV or OGG.",
+  "description": "Convert audio (or extract from video) to MP3, WAV, OGG, AAC, FLAC, M4A, or OPUS.",
   "path": "#/tools/audio-converter",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }
