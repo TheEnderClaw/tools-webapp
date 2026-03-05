@@ -3,7 +3,7 @@
   "name": "Markdown Editor",
   "icon": "📝",
   "tags": ["editor", "markdown", "conversion", "writing"],
-  "description": "Combined rich text + markdown editor with autosave and .md import/export.",
+  "description": "Combined rich text + markdown editor with live sync, autosave and .md import/export.",
   "path": "#/tools/richtext-to-markdown",
-  "version": "0.3.0"
+  "version": "0.3.1"
 }

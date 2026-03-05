@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import TurndownService from 'turndown'
 import { gfm } from 'turndown-plugin-gfm'
+import { marked } from 'marked'
 
 const STORAGE_KEY = 'enderclaw-markdown-editor-draft'
 
@@ -39,30 +40,12 @@ const toolGroups = [
   ],
 ] as const
 
-const defaultHtml = '<h2>Markdown Editor</h2><p>Rich Text und Markdown beeinflussen sich gegenseitig.</p>'
-
-function escapeHtml(input: string) {
-  return input.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-}
-
-function markdownToHtml(input: string) {
-  const escaped = escapeHtml(input)
-  return escaped
-    .replace(/^### (.*)$/gm, '<h3>$1</h3>')
-    .replace(/^## (.*)$/gm, '<h2>$1</h2>')
-    .replace(/^# (.*)$/gm, '<h1>$1</h1>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>')
-    .replace(/^- (.*)$/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
-    .replace(/\n\n/g, '<br/><br/>')
-}
+const defaultHtml = '<h2>Markdown Editor</h2><p>Rich Text und Markdown synchronisieren live.</p>'
 
 export default function Tool() {
   const editorRef = useRef<HTMLDivElement | null>(null)
   const initializedRef = useRef(false)
+  const syncSourceRef = useRef<'rich' | 'markdown' | null>(null)
   const [markdown, setMarkdown] = useState('')
 
   const turndown = useMemo(() => {
@@ -73,12 +56,13 @@ export default function Tool() {
 
   function updateMarkdownFromEditor() {
     const html = editorRef.current?.innerHTML ?? ''
+    syncSourceRef.current = 'rich'
     setMarkdown(turndown.turndown(html))
   }
 
   function applyMarkdownToEditor(md: string) {
     if (!editorRef.current) return
-    editorRef.current.innerHTML = markdownToHtml(md)
+    editorRef.current.innerHTML = marked.parse(md) as string
   }
 
   useEffect(() => {
@@ -102,14 +86,20 @@ export default function Tool() {
 
   useEffect(() => {
     if (!initializedRef.current) return
+
+    if (syncSourceRef.current === 'markdown') {
+      applyMarkdownToEditor(markdown)
+    }
+
     const payload = { markdown, html: editorRef.current?.innerHTML ?? '' }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+    syncSourceRef.current = null
   }, [markdown])
 
   async function importMarkdown(file: File) {
     const text = await file.text()
+    syncSourceRef.current = 'markdown'
     setMarkdown(text)
-    applyMarkdownToEditor(text)
   }
 
   function exportMarkdown() {
@@ -125,7 +115,7 @@ export default function Tool() {
   return (
     <div className="toolPage">
       <h2>Markdown Editor</h2>
-      <p>Rich text + markdown editor, beide Felder sind editierbar und synchronisierbar.</p>
+      <p>Rich text + markdown editor, beide Felder sind live synchron.</p>
 
       <div className="chipWrap">
         {toolGroups.map((group, i) => (
@@ -147,8 +137,6 @@ export default function Tool() {
       </div>
 
       <div className="row" style={{ flexWrap: 'wrap' }}>
-        <button onClick={updateMarkdownFromEditor}>RichText → Markdown</button>
-        <button onClick={() => applyMarkdownToEditor(markdown)}>Markdown → RichText</button>
         <label className="openBtn" style={{ display: 'inline-block' }}>
           Import .md
           <input type="file" accept=".md,text/markdown,text/plain" style={{ display: 'none' }} onChange={(e) => {
@@ -176,8 +164,10 @@ export default function Tool() {
           <textarea
             className="mono"
             value={markdown}
-            onChange={(e) => setMarkdown(e.target.value)}
-            onBlur={() => applyMarkdownToEditor(markdown)}
+            onChange={(e) => {
+              syncSourceRef.current = 'markdown'
+              setMarkdown(e.target.value)
+            }}
             style={{ minHeight: 300, width: '100%' }}
           />
         </div>
