@@ -1,9 +1,0 @@
-{
-  "id": "markdown-preview",
-  "name": "Markdown Preview",
-  "icon": "📝",
-  "tags": ["text", "developer", "preview"],
-  "description": "Write Markdown and preview rendered HTML live.",
-  "path": "#/tools/markdown-preview",
-  "version": "0.2.0"
-}

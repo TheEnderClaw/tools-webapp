@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import TurndownService from 'turndown'
 import { gfm } from 'turndown-plugin-gfm'
-import { marked } from 'marked'
-import DOMPurify from 'dompurify'
 
 const STORAGE_KEY = 'enderclaw-markdown-editor-draft'
 
@@ -38,20 +36,29 @@ const toolGroups = [
         if (url) document.execCommand('insertImage', false, url)
       },
     },
-    {
-      label: 'Table',
-      action: () => {
-        document.execCommand(
-          'insertHTML',
-          false,
-          '<table><thead><tr><th>Column A</th><th>Column B</th></tr></thead><tbody><tr><td>Row 1</td><td>Value</td></tr><tr><td>Row 2</td><td>Value</td></tr></tbody></table><p></p>',
-        )
-      },
-    },
   ],
 ] as const
 
-const defaultHtml = '<h2>Markdown Editor</h2><p>Write in rich text or markdown. Both are editable.</p>'
+const defaultHtml = '<h2>Markdown Editor</h2><p>Rich Text und Markdown beeinflussen sich gegenseitig.</p>'
+
+function escapeHtml(input: string) {
+  return input.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+function markdownToHtml(input: string) {
+  const escaped = escapeHtml(input)
+  return escaped
+    .replace(/^### (.*)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.*)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.*)$/gm, '<h1>$1</h1>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>')
+    .replace(/^- (.*)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+    .replace(/\n\n/g, '<br/><br/>')
+}
 
 export default function Tool() {
   const editorRef = useRef<HTMLDivElement | null>(null)
@@ -64,16 +71,14 @@ export default function Tool() {
     return service
   }, [])
 
-  const previewHtml = useMemo(() => DOMPurify.sanitize(marked.parse(markdown) as string), [markdown])
-
   function updateMarkdownFromEditor() {
     const html = editorRef.current?.innerHTML ?? ''
     setMarkdown(turndown.turndown(html))
   }
 
-  function applyMarkdownToEditor() {
+  function applyMarkdownToEditor(md: string) {
     if (!editorRef.current) return
-    editorRef.current.innerHTML = DOMPurify.sanitize(marked.parse(markdown) as string)
+    editorRef.current.innerHTML = markdownToHtml(md)
   }
 
   useEffect(() => {
@@ -97,19 +102,14 @@ export default function Tool() {
 
   useEffect(() => {
     if (!initializedRef.current) return
-    const payload = {
-      markdown,
-      html: editorRef.current?.innerHTML ?? '',
-    }
+    const payload = { markdown, html: editorRef.current?.innerHTML ?? '' }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
   }, [markdown])
 
   async function importMarkdown(file: File) {
     const text = await file.text()
     setMarkdown(text)
-    if (editorRef.current) {
-      editorRef.current.innerHTML = DOMPurify.sanitize(marked.parse(text) as string)
-    }
+    applyMarkdownToEditor(text)
   }
 
   function exportMarkdown() {
@@ -125,7 +125,7 @@ export default function Tool() {
   return (
     <div className="toolPage">
       <h2>Markdown Editor</h2>
-      <p>Rich text + markdown editor with live preview, autosave, import and export.</p>
+      <p>Rich text + markdown editor, beide Felder sind editierbar und synchronisierbar.</p>
 
       <div className="chipWrap">
         {toolGroups.map((group, i) => (
@@ -148,7 +148,7 @@ export default function Tool() {
 
       <div className="row" style={{ flexWrap: 'wrap' }}>
         <button onClick={updateMarkdownFromEditor}>RichText → Markdown</button>
-        <button onClick={applyMarkdownToEditor}>Markdown → RichText</button>
+        <button onClick={() => applyMarkdownToEditor(markdown)}>Markdown → RichText</button>
         <label className="openBtn" style={{ display: 'inline-block' }}>
           Import .md
           <input type="file" accept=".md,text/markdown,text/plain" style={{ display: 'none' }} onChange={(e) => {
@@ -159,7 +159,7 @@ export default function Tool() {
         <button onClick={exportMarkdown}>Export .md</button>
       </div>
 
-      <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))' }}>
+      <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(320px,1fr))' }}>
         <div>
           <h3>Rich Text</h3>
           <div
@@ -167,7 +167,7 @@ export default function Tool() {
             contentEditable
             suppressContentEditableWarning
             className="preview"
-            style={{ minHeight: 260 }}
+            style={{ minHeight: 300 }}
             onInput={updateMarkdownFromEditor}
           />
         </div>
@@ -177,12 +177,9 @@ export default function Tool() {
             className="mono"
             value={markdown}
             onChange={(e) => setMarkdown(e.target.value)}
-            style={{ minHeight: 260, width: '100%' }}
+            onBlur={() => applyMarkdownToEditor(markdown)}
+            style={{ minHeight: 300, width: '100%' }}
           />
-        </div>
-        <div>
-          <h3>Preview</h3>
-          <div className="preview" style={{ minHeight: 260 }} dangerouslySetInnerHTML={{ __html: previewHtml }} />
         </div>
       </div>
     </div>
