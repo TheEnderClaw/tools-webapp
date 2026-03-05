@@ -49,6 +49,7 @@ const toolGroups = [
 
 export default function Tool() {
   const editorRef = useRef<HTMLDivElement | null>(null)
+  const initializedRef = useRef(false)
   const [markdown, setMarkdown] = useState('')
 
   const turndown = useMemo(() => {
@@ -68,6 +69,11 @@ export default function Tool() {
   }
 
   useEffect(() => {
+    if (initializedRef.current) return
+    if (editorRef.current) {
+      editorRef.current.innerHTML = '<h2>Start writing…</h2><p>This editor supports headings, lists, links, images, quotes, code blocks, and tables.</p>'
+    }
+    initializedRef.current = true
     updateMarkdown()
   }, [])
 
@@ -102,10 +108,6 @@ export default function Tool() {
         className="preview"
         style={{ minHeight: 220 }}
         onInput={updateMarkdown}
-        dangerouslySetInnerHTML={{
-          __html:
-            '<h2>Start writing…</h2><p>This editor supports headings, lists, links, images, quotes, code blocks, and tables.</p>',
-        }}
       />
 
       <label>
