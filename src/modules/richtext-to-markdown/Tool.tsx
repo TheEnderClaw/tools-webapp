@@ -5,6 +5,35 @@ import { marked } from 'marked'
 
 const STORAGE_KEY = 'enderclaw-markdown-editor-draft'
 
+function selectedTextOrFallback(fallback = 'code') {
+  const text = window.getSelection()?.toString().trim()
+  return text && text.length > 0 ? text : fallback
+}
+
+function insertInlineCode() {
+  const text = selectedTextOrFallback('inline code')
+  document.execCommand('insertHTML', false, `<code>${text}</code>`)
+}
+
+function insertCodeBlock() {
+  const text = selectedTextOrFallback('multiline\ncode block')
+  document.execCommand('insertHTML', false, `<pre><code>${text}</code></pre><p></p>`)
+}
+
+function insertTableWithSize() {
+  const rowsInput = window.prompt('Rows?', '2')
+  const colsInput = window.prompt('Columns?', '2')
+  const rows = Math.max(1, Math.min(20, Number(rowsInput || 2)))
+  const cols = Math.max(1, Math.min(10, Number(colsInput || 2)))
+
+  if (!Number.isFinite(rows) || !Number.isFinite(cols)) return
+
+  const head = `<tr>${Array.from({ length: cols }, (_, i) => `<th>Header ${i + 1}</th>`).join('')}</tr>`
+  const body = Array.from({ length: rows }, (_, r) => `<tr>${Array.from({ length: cols }, (_, c) => `<td>R${r + 1}C${c + 1}</td>`).join('')}</tr>`).join('')
+
+  document.execCommand('insertHTML', false, `<table><thead>${head}</thead><tbody>${body}</tbody></table><p></p>`)
+}
+
 const toolGroups = [
   [
     { label: 'H1', action: () => document.execCommand('formatBlock', false, 'h1') },
@@ -16,7 +45,8 @@ const toolGroups = [
     { label: 'B', action: () => document.execCommand('bold') },
     { label: 'I', action: () => document.execCommand('italic') },
     { label: 'S', action: () => document.execCommand('strikeThrough') },
-    { label: 'Code', action: () => document.execCommand('formatBlock', false, 'pre') },
+    { label: 'Inline Code', action: insertInlineCode },
+    { label: 'Code Block', action: insertCodeBlock },
     { label: 'Quote', action: () => document.execCommand('formatBlock', false, 'blockquote') },
   ],
   [
@@ -37,6 +67,7 @@ const toolGroups = [
         if (url) document.execCommand('insertImage', false, url)
       },
     },
+    { label: 'Table', action: insertTableWithSize },
   ],
 ] as const
 
