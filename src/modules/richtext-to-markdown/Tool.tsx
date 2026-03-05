@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import TurndownService from 'turndown'
 import { gfm } from 'turndown-plugin-gfm'
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
+
+const STORAGE_KEY = 'enderclaw-markdown-editor-draft'
 
 const toolGroups = [
   [
@@ -47,40 +51,81 @@ const toolGroups = [
   ],
 ] as const
 
+const defaultHtml = '<h2>Markdown Editor</h2><p>Write in rich text or markdown. Both are editable.</p>'
+
 export default function Tool() {
   const editorRef = useRef<HTMLDivElement | null>(null)
   const initializedRef = useRef(false)
   const [markdown, setMarkdown] = useState('')
 
   const turndown = useMemo(() => {
-    const service = new TurndownService({
-      headingStyle: 'atx',
-      codeBlockStyle: 'fenced',
-      emDelimiter: '_',
-      bulletListMarker: '-',
-    })
+    const service = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced', emDelimiter: '_', bulletListMarker: '-' })
     service.use(gfm as any)
     return service
   }, [])
 
-  function updateMarkdown() {
+  const previewHtml = useMemo(() => DOMPurify.sanitize(marked.parse(markdown) as string), [markdown])
+
+  function updateMarkdownFromEditor() {
     const html = editorRef.current?.innerHTML ?? ''
     setMarkdown(turndown.turndown(html))
   }
 
+  function applyMarkdownToEditor() {
+    if (!editorRef.current) return
+    editorRef.current.innerHTML = DOMPurify.sanitize(marked.parse(markdown) as string)
+  }
+
   useEffect(() => {
     if (initializedRef.current) return
-    if (editorRef.current) {
-      editorRef.current.innerHTML = '<h2>Start writing…</h2><p>This editor supports headings, lists, links, images, quotes, code blocks, and tables.</p>'
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved) as { markdown?: string; html?: string }
+        if (editorRef.current) editorRef.current.innerHTML = parsed.html || defaultHtml
+        setMarkdown(parsed.markdown ?? '')
+      } catch {
+        if (editorRef.current) editorRef.current.innerHTML = defaultHtml
+        updateMarkdownFromEditor()
+      }
+    } else {
+      if (editorRef.current) editorRef.current.innerHTML = defaultHtml
+      updateMarkdownFromEditor()
     }
     initializedRef.current = true
-    updateMarkdown()
   }, [])
+
+  useEffect(() => {
+    if (!initializedRef.current) return
+    const payload = {
+      markdown,
+      html: editorRef.current?.innerHTML ?? '',
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+  }, [markdown])
+
+  async function importMarkdown(file: File) {
+    const text = await file.text()
+    setMarkdown(text)
+    if (editorRef.current) {
+      editorRef.current.innerHTML = DOMPurify.sanitize(marked.parse(text) as string)
+    }
+  }
+
+  function exportMarkdown() {
+    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'markdown-editor-export.md'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <div className="toolPage">
-      <h2>Rich Text → Markdown</h2>
-      <p>Write with rich text controls and get Markdown output instantly.</p>
+      <h2>Markdown Editor</h2>
+      <p>Rich text + markdown editor with live preview, autosave, import and export.</p>
 
       <div className="chipWrap">
         {toolGroups.map((group, i) => (
@@ -91,7 +136,7 @@ export default function Tool() {
                 onClick={() => {
                   editorRef.current?.focus()
                   btn.action()
-                  updateMarkdown()
+                  updateMarkdownFromEditor()
                 }}
               >
                 {btn.label}
@@ -101,20 +146,45 @@ export default function Tool() {
         ))}
       </div>
 
-      <div
-        ref={editorRef}
-        contentEditable
-        suppressContentEditableWarning
-        className="preview"
-        style={{ minHeight: 220 }}
-        onInput={updateMarkdown}
-      />
+      <div className="row" style={{ flexWrap: 'wrap' }}>
+        <button onClick={updateMarkdownFromEditor}>RichText → Markdown</button>
+        <button onClick={applyMarkdownToEditor}>Markdown → RichText</button>
+        <label className="openBtn" style={{ display: 'inline-block' }}>
+          Import .md
+          <input type="file" accept=".md,text/markdown,text/plain" style={{ display: 'none' }} onChange={(e) => {
+            const f = e.target.files?.[0]
+            if (f) void importMarkdown(f)
+          }} />
+        </label>
+        <button onClick={exportMarkdown}>Export .md</button>
+      </div>
 
-      <label>
-        Markdown output
-        <textarea className="mono" readOnly value={markdown} style={{ minHeight: 260 }} />
-      </label>
-      <button onClick={() => navigator.clipboard.writeText(markdown)}>Copy Markdown</button>
+      <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))' }}>
+        <div>
+          <h3>Rich Text</h3>
+          <div
+            ref={editorRef}
+            contentEditable
+            suppressContentEditableWarning
+            className="preview"
+            style={{ minHeight: 260 }}
+            onInput={updateMarkdownFromEditor}
+          />
+        </div>
+        <div>
+          <h3>Markdown</h3>
+          <textarea
+            className="mono"
+            value={markdown}
+            onChange={(e) => setMarkdown(e.target.value)}
+            style={{ minHeight: 260, width: '100%' }}
+          />
+        </div>
+        <div>
+          <h3>Preview</h3>
+          <div className="preview" style={{ minHeight: 260 }} dangerouslySetInnerHTML={{ __html: previewHtml }} />
+        </div>
+      </div>
     </div>
   )
 }

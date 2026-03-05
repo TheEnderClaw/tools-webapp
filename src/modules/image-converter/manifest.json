@@ -3,7 +3,7 @@
   "name": "Image Converter",
   "icon": "🖼️",
   "tags": ["media", "conversion", "image"],
-  "description": "Convert images to PNG, JPG, WebP, BMP, TIFF, and GIF.",
+  "description": "Batch convert images with progress, cancel, and format guidance.",
   "path": "#/tools/image-converter",
-  "version": "0.2.0"
+  "version": "0.3.0"
 }

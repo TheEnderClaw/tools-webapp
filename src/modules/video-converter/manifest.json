@@ -3,7 +3,7 @@
   "name": "Video Converter",
   "icon": "🎬",
   "tags": ["media", "conversion", "video"],
-  "description": "Convert video files to MP4, WebM, MKV, MOV, AVI, M4V, FLV, 3GP, MPEG, TS, and GIF.",
+  "description": "Batch convert videos with queue/progress/cancel and format guidance.",
   "path": "#/tools/video-converter",
-  "version": "0.2.0"
+  "version": "0.3.0"
 }
