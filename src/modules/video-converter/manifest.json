@@ -1,0 +1,9 @@
+{
+  "id": "video-converter",
+  "name": "Video Converter",
+  "icon": "🎬",
+  "tags": ["media", "conversion", "video"],
+  "description": "Convert video files between MP4, WebM and GIF in-browser.",
+  "path": "#/tools/video-converter",
+  "version": "0.1.0"
+}

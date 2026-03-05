@@ -1,0 +1,9 @@
+{
+  "id": "image-converter",
+  "name": "Image Converter",
+  "icon": "🖼️",
+  "tags": ["media", "conversion", "image"],
+  "description": "Convert images to PNG, JPG, or WebP directly in your browser.",
+  "path": "#/tools/image-converter",
+  "version": "0.1.0"
+}

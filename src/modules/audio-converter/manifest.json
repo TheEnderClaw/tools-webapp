@@ -1,0 +1,9 @@
+{
+  "id": "audio-converter",
+  "name": "Audio Converter",
+  "icon": "🎵",
+  "tags": ["media", "conversion", "audio"],
+  "description": "Convert audio (or extract audio from video) to MP3, WAV or OGG.",
+  "path": "#/tools/audio-converter",
+  "version": "0.1.0"
+}
