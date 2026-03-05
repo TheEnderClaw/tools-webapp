@@ -26,6 +26,7 @@ for (const [path, mod] of Object.entries(toolModules)) {
 }
 
 const allTags = Array.from(new Set(tools.flatMap((t) => t.tags))).sort((a, b) => a.localeCompare(b))
+const appVersion = import.meta.env.VITE_APP_VERSION ?? 'dev'
 
 function getToolIdFromHash(hash: string) {
   const m = hash.match(/^#\/tools\/([^/?#]+)/)
@@ -74,6 +75,7 @@ function App() {
           <div>
             <h1>{tool.icon} {tool.name}</h1>
             <p>{tool.description}</p>
+            <p>Module version: v{tool.version} · App version: v{appVersion}</p>
           </div>
           <a className="openBtn" href="#/">← Back to tools</a>
         </header>
@@ -90,7 +92,10 @@ function App() {
           <h1>EnderClaw Tools</h1>
           <p>Each module is fully isolated in its own folder.</p>
         </div>
-        <span className="pill">{tools.length} modules</span>
+        <div className="chipWrap">
+          <span className="pill">App v{appVersion}</span>
+          <span className="pill">{tools.length} modules</span>
+        </div>
       </header>
 
       <section className="controls">
@@ -120,6 +125,7 @@ function App() {
               </div>
             </div>
             <div className="chipWrap">
+              <span className="chip">v{tool.version}</span>
               {tool.tags.map((tag) => <span key={`${tool.id}-${tag}`} className="chip">{tag}</span>)}
             </div>
             <a className="openBtn" href={tool.path}>Open tool</a>
