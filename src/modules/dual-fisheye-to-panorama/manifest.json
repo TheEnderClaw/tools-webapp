@@ -1,0 +1,9 @@
+{
+  "id": "dual-fisheye-to-panorama",
+  "name": "Dual Fisheye to Panorama",
+  "icon": "🌄",
+  "tags": ["media", "image", "conversion", "panorama"],
+  "description": "Converts side-by-side 360 dual-fisheye images into an equirectangular panorama.",
+  "path": "#/tools/dual-fisheye-to-panorama",
+  "version": "0.1.0"
+}
